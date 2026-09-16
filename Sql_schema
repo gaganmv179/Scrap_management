@@ -1,0 +1,58 @@
+
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    phone VARCHAR(15) NOT NULL UNIQUE,
+    role ENUM('user', 'collector', 'recycler', 'admin') NOT NULL,
+    location VARCHAR(255),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE scrap_items (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    material VARCHAR(100) NOT NULL,
+    weight DECIMAL(10,2) NOT NULL,
+    estimated_price DECIMAL(10,2),
+    image_url VARCHAR(500),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE recycler_offers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    recycler_id INT NOT NULL,
+    scrap_id INT NOT NULL,
+    offer_amount DECIMAL(10,2) NOT NULL,
+    status ENUM('pending', 'accepted', 'rejected') DEFAULT 'pending',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (recycler_id) REFERENCES users(id),
+    FOREIGN KEY (scrap_id) REFERENCES scrap_items(id)
+);
+
+CREATE TABLE transactions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    collector_id INT NOT NULL,
+    recycler_id INT NOT NULL,
+    scrap_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    status ENUM('pending', 'accepted', 'completed', 'cancelled')
+        DEFAULT 'pending',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (collector_id) REFERENCES users(id),
+    FOREIGN KEY (recycler_id) REFERENCES users(id),
+    FOREIGN KEY (scrap_id) REFERENCES scrap_items(id)
+);
+
+CREATE TABLE payments (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    transaction_id INT NOT NULL,
+    amount DECIMAL(10,2) NOT NULL,
+    payment_status ENUM('pending', 'completed', 'failed')
+        DEFAULT 'pending',
+    payment_method ENUM('cash', 'upi', 'bank_transfer')
+        DEFAULT 'upi',
+    timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (transaction_id) REFERENCES transactions(id)
+);
